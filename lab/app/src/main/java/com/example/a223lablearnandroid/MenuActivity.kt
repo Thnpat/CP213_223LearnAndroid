@@ -44,6 +44,21 @@ class MenuActivity : ComponentActivity() {
                 }) {
                     Text("SharedPreferencesUtil")
                 }
+                Button(onClick = {
+                    startActivity(Intent(this@MenuActivity, CameraActivity::class.java))
+                }) {
+                    Text("CameraActivity")
+                }
+                Button(onClick = {
+                    startActivity(Intent(this@MenuActivity, GalleryActivity::class.java))
+                }) {
+                    Text("GalleryActivity")
+                }
+                Button(onClick = {
+                    startActivity(Intent(this@MenuActivity, SensorLocationActivity::class.java))
+                }) {
+                    Text("Sensor & MVVM")
+                }
             }
         }
     }
