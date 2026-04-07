@@ -107,6 +107,27 @@ class MenuActivity : ComponentActivity() {
                 }) {
                     Text("Part 8: Adaptive Layouts (Tablet)")
                 }
+                Button(onClick = {
+                    val options = ActivityOptionsCompat.makeCustomAnimation(this@MenuActivity, android.R.anim.slide_in_left, android.R.anim.slide_out_right)
+                    startActivity(Intent(this@MenuActivity, Part9Activity::class.java), options.toBundle())
+                }) {
+                    Text("Part 9: Collapsing TopBar")
+                }
+                Button(onClick = {
+                    startActivity(Intent(this@MenuActivity, Part10Activity::class.java))
+                }) {
+                    Text("Part 10: App Widget")
+                }
+                Button(onClick = {
+                    startActivity(Intent(this@MenuActivity, Part11Activity::class.java))
+                }) {
+                    Text("Part 11: Skeleton Loading")
+                }
+                Button(onClick = {
+                    startActivity(Intent(this@MenuActivity, Part12Activity::class.java))
+                }) {
+                    Text("Part 12: Dialog & BottomSheet")
+                }
             }
         }
     }
