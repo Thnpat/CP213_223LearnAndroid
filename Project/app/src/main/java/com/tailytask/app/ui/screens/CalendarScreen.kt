@@ -15,6 +15,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -72,15 +75,15 @@ fun CalendarScreen(
     }
     val daysInMonth = currentMonth.getActualMaximum(Calendar.DAY_OF_MONTH)
     
-    val dayWidth = 60.dp
-    val headerHeight = 40.dp
-    val rowHeight = 60.dp
+    val dayWidth = 75.dp
+    val headerHeight = 50.dp
+    val rowHeight = 64.dp
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(top = 16.dp)
+            .padding(top = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding() + 16.dp)
     ) {
         // Title
         Text(
@@ -100,9 +103,10 @@ fun CalendarScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = {
-                currentMonth = (currentMonth.clone() as Calendar).apply { add(Calendar.MONTH, -1) }
-            }) {
+            IconButton(
+                onClick = { currentMonth = (currentMonth.clone() as Calendar).apply { add(Calendar.MONTH, -1) } },
+                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
+            ) {
                 Icon(Icons.Filled.ChevronLeft, "Previous month", tint = MaterialTheme.colorScheme.primary)
             }
             Text(
@@ -111,13 +115,14 @@ fun CalendarScreen(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            IconButton(onClick = {
-                currentMonth = (currentMonth.clone() as Calendar).apply { add(Calendar.MONTH, 1) }
-            }) {
+            IconButton(
+                onClick = { currentMonth = (currentMonth.clone() as Calendar).apply { add(Calendar.MONTH, 1) } },
+                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
+            ) {
                 Icon(Icons.Filled.ChevronRight, "Next month", tint = MaterialTheme.colorScheme.primary)
             }
         }
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         // Gantt Chart Area
         val scrollState = rememberScrollState()
@@ -129,7 +134,7 @@ fun CalendarScreen(
         ) {
             val totalWidth = dayWidth * daysInMonth
             
-            // Background Grid
+            // Background Grid (Vertical Lines & Today Highlight)
             Row(modifier = Modifier.width(totalWidth)) {
                 for (day in 1..daysInMonth) {
                     val isToday = day == today.get(Calendar.DAY_OF_MONTH) &&
@@ -140,9 +145,17 @@ fun CalendarScreen(
                         modifier = Modifier
                             .width(dayWidth)
                             .fillMaxHeight()
-                            .border(0.5.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
                             .background(if (isToday) MaterialTheme.colorScheme.primary.copy(alpha = 0.05f) else Color.Transparent)
-                    )
+                    ) {
+                        // Right border line for each day
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .width(1.dp)
+                                .fillMaxHeight()
+                                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f))
+                        )
+                    }
                 }
             }
 
@@ -154,15 +167,28 @@ fun CalendarScreen(
                         .height(headerHeight)
                 ) {
                     for (day in 1..daysInMonth) {
+                        val isToday = day == today.get(Calendar.DAY_OF_MONTH) &&
+                                currentMonth.get(Calendar.MONTH) == today.get(Calendar.MONTH) &&
+                                currentMonth.get(Calendar.YEAR) == today.get(Calendar.YEAR)
+                                
                         Box(
                             modifier = Modifier.width(dayWidth).fillMaxHeight(),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = "วัน $day",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (isToday) MaterialTheme.colorScheme.primary else Color.Transparent)
+                                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "$day",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (isToday) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                )
+                            }
                         }
                     }
                 }
@@ -199,23 +225,28 @@ fun CalendarScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(rowHeight)
-                                .padding(vertical = 8.dp)
+                                .padding(vertical = 6.dp)
                         ) {
-                            // Project Line
+                            // Project Bar (Pill Shape)
                             Box(
                                 modifier = Modifier
-                                    .padding(start = dayWidth * startDay, top = 20.dp)
-                                    .width(dayWidth * span)
-                                    .height(4.dp)
-                                    .background(color, RoundedCornerShape(2.dp))
-                            )
-                            // Project Label
-                            Text(
-                                text = project.title,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = color,
-                                modifier = Modifier.padding(start = dayWidth * startDay + 4.dp)
-                            )
+                                    .padding(start = dayWidth * startDay + 8.dp)
+                                    .width(dayWidth * span - 16.dp)
+                                    .fillMaxHeight()
+                                    .background(color.copy(alpha = 0.15f), RoundedCornerShape(16.dp))
+                                    .border(1.dp, color.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                                    .padding(horizontal = 12.dp),
+                                contentAlignment = Alignment.CenterStart
+                            ) {
+                                Text(
+                                    text = project.title,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = color,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                         }
                     }
 
@@ -233,24 +264,25 @@ fun CalendarScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(rowHeight)
-                                .padding(vertical = 8.dp)
+                                .padding(vertical = 6.dp)
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .padding(start = dayWidth * taskDay + 4.dp, end = 4.dp)
-                                    .width(dayWidth * 2 - 8.dp) // Make task boxes span a bit for visibility
+                                    .padding(start = dayWidth * taskDay + 8.dp)
+                                    .width(dayWidth * 1.5f - 16.dp) // Task box spans 1.5 days for visibility
                                     .fillMaxHeight()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .border(2.dp, color, RoundedCornerShape(8.dp))
+                                    .clip(RoundedCornerShape(12.dp))
                                     .background(MaterialTheme.colorScheme.surface)
-                                    .padding(8.dp)
-                                    .clickable { taskViewModel.toggleTask(task) },
+                                    .border(1.5.dp, if (task.isCompleted) color.copy(alpha = 0.3f) else color, RoundedCornerShape(12.dp))
+                                    .clickable { taskViewModel.toggleTask(task) }
+                                    .padding(horizontal = 12.dp),
                                 contentAlignment = Alignment.CenterStart
                             ) {
                                 Text(
                                     text = task.title,
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurface,
+                                    fontWeight = FontWeight.Medium,
+                                    color = if (task.isCompleted) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f) else MaterialTheme.colorScheme.onSurface,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                     textDecoration = if (task.isCompleted) TextDecoration.LineThrough else null
@@ -259,7 +291,7 @@ fun CalendarScreen(
                         }
                     }
                     
-                    item { Spacer(modifier = Modifier.height(80.dp)) }
+                    item { Spacer(modifier = Modifier.height(120.dp)) }
                 }
             }
         }

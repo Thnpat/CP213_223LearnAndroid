@@ -16,6 +16,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -84,14 +87,19 @@ fun ShopScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp)
+            .padding(
+                top = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding(),
+                bottom = 120.dp,
+                start = 20.dp,
+                end = 20.dp
+            )
     ) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "🛍️ ร้านค้าธีม",
+            text = "Theme Shop",
             style = MaterialTheme.typography.displayMedium,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.ExtraBold,
             color = MaterialTheme.colorScheme.onBackground
         )
 
@@ -131,12 +139,12 @@ fun ShopScreen(
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(
-                            text = "แต้มของคุณ",
+                            text = "Your Points",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                         )
                         Text(
-                            text = "$totalPoints แต้ม",
+                            text = "$totalPoints pts",
                             style = MaterialTheme.typography.headlineLarge,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFFB8860B)
@@ -149,9 +157,9 @@ fun ShopScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         Text(
-            text = "🎨 ธีมทั้งหมด",
+            text = "All Themes",
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.ExtraBold,
             color = MaterialTheme.colorScheme.onBackground
         )
 
@@ -183,26 +191,26 @@ fun ShopScreen(
         AlertDialog(
             onDismissRequest = { showPurchaseDialog = null },
             title = {
-                Text("🛒 ซื้อธีม?", style = MaterialTheme.typography.headlineMedium)
+                Text("Purchase Theme?", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
             },
             text = {
                 Column {
                     Text(
-                        text = "ต้องการซื้อ ${theme.name}?",
+                        text = "Do you want to purchase ${theme.name}?",
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("ราคา: ", style = MaterialTheme.typography.bodyMedium)
                         Text(
-                            text = "${theme.price} แต้ม",
+                            text = "${theme.price} pts",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFFB8860B)
                         )
                     }
                     Text(
-                        text = "คงเหลือ: $totalPoints แต้ม",
+                        text = "Balance: $totalPoints pts",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
@@ -321,7 +329,7 @@ fun ThemeShopCard(
             ) {
                 if (theme.price == 0) {
                     Text(
-                        text = "🎁 ฟรี!",
+                        text = "Free!",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color(0xFF66BB6A),
                         fontWeight = FontWeight.Bold
@@ -335,7 +343,7 @@ fun ThemeShopCard(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "${theme.price} แต้ม",
+                            text = "${theme.price} pts",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFFB8860B)

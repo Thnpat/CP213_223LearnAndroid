@@ -17,7 +17,8 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="TailyTask"
-            android:theme="@style/Theme.TailyTask">
+            android:theme="@style/Theme.TailyTask"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

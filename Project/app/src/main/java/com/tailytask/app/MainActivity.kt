@@ -10,16 +10,15 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -74,6 +73,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
+        }
 
         // Create notification channel
         NotificationHelper.createNotificationChannel(this)
@@ -87,7 +90,6 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        enableEdgeToEdge()
         setContent {
             TailyTaskApp()
         }
@@ -143,7 +145,9 @@ fun TailyTaskApp() {
             NavHost(
                 navController = navController,
                 startDestination = Screen.Dashboard.route,
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
             ) {
                 composable(Screen.Dashboard.route) {
                     DashboardScreen(
@@ -203,7 +207,7 @@ fun TailyTaskApp() {
             if (showFastRecord) {
                 AlertDialog(
                     onDismissRequest = { showFastRecord = false },
-                    title = { Text("Fast Record ✨", fontWeight = FontWeight.Bold) },
+                    title = { Text("Fast Record", fontWeight = FontWeight.Bold) },
                     text = { 
                         FastRecordBar(onSubmit = { 
                             taskViewModel.fastRecord(it)
@@ -228,10 +232,14 @@ fun TailyBottomBar(navController: NavHostController) {
 
     NavigationBar(
         modifier = Modifier
-            .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-            .shadow(8.dp),
+            .navigationBarsPadding()
+            .padding(horizontal = 20.dp)
+            .padding(bottom = 16.dp)
+            .shadow(16.dp, RoundedCornerShape(32.dp))
+            .clip(RoundedCornerShape(32.dp)),
         containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = 8.dp
+        tonalElevation = 8.dp,
+        windowInsets = WindowInsets(0, 0, 0, 0)
     ) {
         Screen.bottomNavItems.forEach { screen ->
             val isSelected = currentRoute == screen.route

@@ -80,7 +80,7 @@ fun TaskCard(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(containerColor = cardColor),
         elevation = CardDefaults.cardElevation(
             defaultElevation = if (task.isCompleted) 1.dp else 4.dp
@@ -177,7 +177,7 @@ fun TaskCard(
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     ) {
                         Text(
-                            text = "+${task.points}⭐",
+                            text = "+${task.points} pts",
                             style = MaterialTheme.typography.labelSmall,
                             color = Color(0xFFB8860B)
                         )

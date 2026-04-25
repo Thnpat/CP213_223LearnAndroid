@@ -21,9 +21,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -101,7 +103,7 @@ fun ProjectDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("โปรเจค", style = MaterialTheme.typography.titleLarge) },
+                title = { Text("Project", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
@@ -137,8 +139,13 @@ fun ProjectDetailScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 20.dp),
+                    .background(MaterialTheme.colorScheme.background),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                    top = paddingValues.calculateTopPadding() + 16.dp,
+                    bottom = paddingValues.calculateBottomPadding() + 120.dp,
+                    start = 20.dp,
+                    end = 20.dp
+                ),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 // Project header
@@ -170,7 +177,7 @@ fun ProjectDetailScreen(
                             }
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                text = "📅 ${dateFormat.format(Date(project!!.startDate))} → ${dateFormat.format(Date(project!!.deadline))}",
+                                text = "${dateFormat.format(Date(project!!.startDate))} → ${dateFormat.format(Date(project!!.deadline))}",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                             )
@@ -227,7 +234,7 @@ fun ProjectDetailScreen(
                                     shape = RoundedCornerShape(12.dp),
                                     colors = ButtonDefaults.buttonColors(containerColor = projectColor)
                                 ) {
-                                    Text("🎉 ทำเสร็จแล้ว! ปิดโปรเจค", color = Color.White)
+                                    Text("Complete Project!", color = Color.White, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -237,7 +244,7 @@ fun ProjectDetailScreen(
                 // Subtasks header
                 item {
                     Text(
-                        text = "📝 งานย่อย",
+                        text = "Subtasks",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onBackground
@@ -253,14 +260,21 @@ fun ProjectDetailScreen(
                                 .padding(vertical = 40.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text(text = "📋", fontSize = 48.sp)
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.List,
+                                contentDescription = "Empty",
+                                modifier = Modifier.size(48.dp),
+                                tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f)
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                text = "ยังไม่มีงานย่อย",
-                                style = MaterialTheme.typography.bodyMedium,
+                                text = "No subtasks yet",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                             )
                             Text(
-                                text = "กดปุ่ม + เพื่อเพิ่มงานย่อย",
+                                text = "Tap + to add a subtask",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                             )
@@ -287,7 +301,7 @@ fun ProjectDetailScreen(
         var subtaskTitle by remember { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = { showAddSubtaskDialog = false },
-            title = { Text("➕ เพิ่มงานย่อย") },
+            title = { Text("Add Subtask", fontWeight = FontWeight.Bold) },
             text = {
                 OutlinedTextField(
                     value = subtaskTitle,
@@ -374,7 +388,7 @@ fun SubtaskItem(
                     .padding(horizontal = 6.dp, vertical = 2.dp)
             ) {
                 Text(
-                    text = "+${subtask.points}⭐",
+                    text = "+${subtask.points} pts",
                     style = MaterialTheme.typography.labelSmall,
                     color = Color(0xFFB8860B)
                 )
