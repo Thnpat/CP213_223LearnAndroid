@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,6 +23,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.PendingActions
@@ -57,6 +59,14 @@ import com.tailytask.app.viewmodel.ProjectViewModel
 import com.tailytask.app.viewmodel.TaskViewModel
 import com.tailytask.app.viewmodel.ThemeViewModel
 
+import com.tailytask.app.ui.components.AddTaskSheet
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
     taskViewModel: TaskViewModel,
@@ -88,6 +98,9 @@ fun DashboardScreen(
         }
     }
 
+    var showAddSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -104,19 +117,12 @@ fun DashboardScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(
-                        text = "สวัสดี! 👋",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                    )
-                    Text(
-                        text = userName,
-                        style = MaterialTheme.typography.displayMedium,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                Text(
+                    text = "Dashboard",
+                    style = MaterialTheme.typography.displayMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.Bold
+                )
 
                 IconButton(
                     onClick = onNavigateToProfile,
@@ -133,132 +139,96 @@ fun DashboardScreen(
                 }
             }
         }
-
-        // Fast Record Bar
-        item {
-            FastRecordBar(
-                onSubmit = { taskViewModel.fastRecord(it) }
-            )
-        }
-
-        // Stats Cards Row
+        // Top Layout (1 Large Box + 2 Small Boxes)
         item {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                StatCard(
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Filled.TaskAlt,
-                    label = "ทั้งหมด",
-                    value = "$totalCount",
-                    color = MaterialTheme.colorScheme.primary
-                )
-                StatCard(
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Filled.CheckCircle,
-                    label = "เสร็จแล้ว",
-                    value = "$completedCount",
-                    color = Color(0xFF66BB6A)
-                )
-                StatCard(
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Filled.PendingActions,
-                    label = "รอทำ",
-                    value = "$pendingCount",
-                    color = Color(0xFFFF7043)
-                )
-            }
-        }
-
-        // Progress + Points Card
-        item {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-            ) {
-                Row(
+                // Left Large Box (Progress)
+                Card(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .weight(1.5f)
+                        .fillMaxHeight(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
-                    // Circular progress
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.size(80.dp)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
-                        CircularProgressIndicator(
-                            progress = { animatedProgress },
-                            modifier = Modifier.size(80.dp),
-                            color = MaterialTheme.colorScheme.primary,
-                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                            strokeWidth = 8.dp,
-                            strokeCap = StrokeCap.Round
-                        )
-                        Text(
-                            text = "${(completionRate * 100).toInt()}%",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(20.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "ความคืบหน้างานเดี่ยว",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        LinearProgressIndicator(
-                            progress = { animatedProgress },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(8.dp)
-                                .clip(RoundedCornerShape(4.dp)),
-                            color = MaterialTheme.colorScheme.primary,
-                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                            strokeCap = StrokeCap.Round
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        // Points
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.EmojiEvents,
-                                contentDescription = null,
-                                tint = PointsGold,
-                                modifier = Modifier.size(20.dp)
+                        Box(contentAlignment = Alignment.Center, modifier = Modifier.size(90.dp)) {
+                            CircularProgressIndicator(
+                                progress = { animatedProgress },
+                                modifier = Modifier.size(90.dp),
+                                color = MaterialTheme.colorScheme.primary,
+                                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                                strokeWidth = 8.dp,
+                                strokeCap = StrokeCap.Round
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "$points แต้ม",
-                                style = MaterialTheme.typography.titleMedium,
+                                text = "${(completionRate * 100).toInt()}%",
+                                style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFFB8860B)
+                                color = MaterialTheme.colorScheme.primary
                             )
                         }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "Overall Progress",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
                     }
+                }
+
+                // Right Small Boxes
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    StatCard(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        icon = Icons.Filled.TaskAlt,
+                        label = "Total Tasks",
+                        value = "$totalCount",
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    StatCard(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        icon = Icons.Filled.CheckCircle,
+                        label = "Completed",
+                        value = "$completedCount",
+                        color = Color(0xFF66BB6A)
+                    )
                 }
             }
         }
 
-        // Active Projects
-        if (activeProjects.isNotEmpty()) {
             item {
-                Text(
-                    text = "📁 โปรเจคดำเนินอยู่",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Project",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                }
             }
 
             item {
@@ -284,15 +254,33 @@ fun DashboardScreen(
                     }
                 }
             }
-        }
 
-        // Recent Tasks Header
+        // Tasks Header
         item {
-            Text(
-                text = "📋 งานล่าสุด",
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Task",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 12.dp)
+                        .height(1.dp)
+                        .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f))
+                )
+                IconButton(onClick = { showAddSheet = true }, modifier = Modifier.size(32.dp)) {
+                    Icon(
+                        Icons.Filled.Add,
+                        contentDescription = "Add Task",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
         }
 
         // Task list (show pending first, max 10)
@@ -313,12 +301,7 @@ fun DashboardScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "🎉",
-                            fontSize = 48.sp
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "ยังไม่มีงาน",
+                            text = "No tasks yet",
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
@@ -342,6 +325,17 @@ fun DashboardScreen(
 
         item { Spacer(modifier = Modifier.height(80.dp)) }
     }
+
+    if (showAddSheet) {
+        AddTaskSheet(
+            sheetState = sheetState,
+            onDismiss = { showAddSheet = false },
+            onSave = { task ->
+                taskViewModel.addTask(task)
+                showAddSheet = false
+            }
+        )
+    }
 }
 
 @Composable
@@ -358,32 +352,31 @@ fun StatCard(
         colors = CardDefaults.cardColors(
             containerColor = color.copy(alpha = 0.12f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Column(
+        Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize()
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = color,
-                modifier = Modifier.size(28.dp)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = value,
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold,
-                color = color
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = color.copy(alpha = 0.7f)
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = color
+                )
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = color.copy(alpha = 0.7f)
+                )
+            }
         }
     }
 }

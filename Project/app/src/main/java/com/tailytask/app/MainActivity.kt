@@ -14,6 +14,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -24,6 +28,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -43,7 +50,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.tailytask.app.notifications.NotificationHelper
+import com.tailytask.app.ui.components.FastRecordBar
 import com.tailytask.app.ui.navigation.Screen
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import com.tailytask.app.ui.screens.CalendarScreen
 import com.tailytask.app.ui.screens.DashboardScreen
 import com.tailytask.app.ui.screens.ProfileScreen
@@ -105,6 +115,8 @@ fun TailyTaskApp() {
         val showBottomBar = currentRoute in Screen.bottomNavItems.map { it.route } ||
                 currentRoute == Screen.Profile.route
 
+        var showFastRecord by remember { mutableStateOf(false) }
+
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = MaterialTheme.colorScheme.background,
@@ -113,7 +125,20 @@ fun TailyTaskApp() {
                 if (showBottomBar) {
                     TailyBottomBar(navController = navController)
                 }
-            }
+            },
+            floatingActionButton = {
+                if (showBottomBar) {
+                    FloatingActionButton(
+                        onClick = { showFastRecord = true },
+                        shape = CircleShape,
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ) {
+                        Icon(Icons.Filled.AutoAwesome, contentDescription = "Fast Record")
+                    }
+                }
+            },
+            floatingActionButtonPosition = FabPosition.Center
         ) { innerPadding ->
             NavHost(
                 navController = navController,
@@ -173,6 +198,24 @@ fun TailyTaskApp() {
                         onBack = { navController.popBackStack() }
                     )
                 }
+            }
+
+            if (showFastRecord) {
+                AlertDialog(
+                    onDismissRequest = { showFastRecord = false },
+                    title = { Text("Fast Record ✨", fontWeight = FontWeight.Bold) },
+                    text = { 
+                        FastRecordBar(onSubmit = { 
+                            taskViewModel.fastRecord(it)
+                            showFastRecord = false
+                        }) 
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { showFastRecord = false }) {
+                            Text("ปิด")
+                        }
+                    }
+                )
             }
         }
     }
