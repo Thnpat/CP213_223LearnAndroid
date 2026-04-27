@@ -27,7 +27,7 @@ class GeminiService {
         if (hasApiKey) {
             try {
                 com.google.ai.client.generativeai.GenerativeModel(
-                    modelName = "gemini-2.0-flash",
+                    modelName = "gemini-2.5-flash",
                     apiKey = apiKey
                 )
             } catch (e: Exception) {
@@ -46,12 +46,14 @@ class GeminiService {
             try {
                 return parseWithGemini(input)
             } catch (e: Exception) {
-                // Fall back to mock parser if API call fails
                 e.printStackTrace()
+                throw Exception("AI Error: ${e.message}")
             }
+        } else {
+            throw Exception("ไม่พบ Gemini API Key ในระบบ")
         }
-        // Fallback: mock parser
-        return mockParse(input)
+        // Fallback: mock parser (คอมเมนต์ไว้ก่อนเผื่อนำกลับมาใช้)
+        // return mockParse(input)
     }
 
     private suspend fun parseWithGemini(input: String): ParsedTask {
@@ -65,6 +67,7 @@ class GeminiService {
             วันนี้คือ $today
             **สำคัญ: หากผู้ใช้พิมพ์เป็นภาษาไทย ให้ตั้งชื่องาน (title) และรายละเอียด (description) เป็นภาษาไทย ห้ามแปลเป็นภาษาอังกฤษ**
             **สำคัญ: ถ้าผู้ใช้ระบุแค่วันที่ (เช่น 'วันที่ 29') ให้ใช้เดือนและปีจาก '$today' เพื่อสร้างวันที่ในรูปแบบ yyyy-MM-dd**
+            **สำคัญ: ถ้าผู้ใช้ระบุวันที่รูปแบบ dd/mm หรือ dd/mm/yyyy (เช่น 02/05) ให้แปลผลเป็นวันที่ 2 เดือน 5 แล้วแปลงเป็น yyyy-MM-dd**
             
             ตอบเป็น JSON format นี้เท่านั้น (ไม่ต้องมี markdown):
             {
@@ -81,8 +84,15 @@ class GeminiService {
         val response = model!!.generateContent(prompt)
         val text = response.text ?: throw Exception("Empty response")
 
-        // Extract JSON from response
-        val jsonStr = text.replace("```json", "").replace("```", "").trim()
+        // Extract JSON from response safely
+        val jsonStart = text.indexOf("{")
+        val jsonEnd = text.lastIndexOf("}")
+        
+        if (jsonStart == -1 || jsonEnd == -1) {
+            throw Exception("AI ไม่ได้ส่งมอบข้อมูลรูปแบบ JSON กลับมา: $text")
+        }
+        
+        val jsonStr = text.substring(jsonStart, jsonEnd + 1)
 
         val gson = com.google.gson.Gson()
         val map = gson.fromJson(jsonStr, Map::class.java)
@@ -125,7 +135,27 @@ class GeminiService {
         val dateRegex = Regex("วันที่\\s*(\\d{1,2})")
         val dateMatch = dateRegex.find(lowerInput)
         
+        val slashDateRegex = Regex("(\\d{1,2})/(\\d{1,2})(?:/(\\d{2,4}))?")
+        val slashDateMatch = slashDateRegex.find(lowerInput)
+        
         val dueDate: Long? = when {
+            slashDateMatch != null -> {
+                val day = slashDateMatch.groupValues[1].toInt()
+                val month = slashDateMatch.groupValues[2].toInt() - 1 // Calendar months are 0-indexed
+                val yearGroup = slashDateMatch.groupValues[3]
+                
+                calendar.set(Calendar.DAY_OF_MONTH, day)
+                calendar.set(Calendar.MONTH, month)
+                if (yearGroup.isNotEmpty()) {
+                    var year = yearGroup.toInt()
+                    if (year < 100) year += 2000
+                    if (year > 2500) year -= 543 // Thai year fallback
+                    calendar.set(Calendar.YEAR, year)
+                } else if (calendar.timeInMillis < System.currentTimeMillis() - 86400000) {
+                    calendar.add(Calendar.YEAR, 1) // If the date is past this year, assume next year
+                }
+                calendar.timeInMillis
+            }
             dateMatch != null -> {
                 val day = dateMatch.groupValues[1].toInt()
                 calendar.set(Calendar.DAY_OF_MONTH, day)
@@ -217,6 +247,7 @@ class GeminiService {
         ).forEach { keyword ->
             title = title.replace(keyword, "", ignoreCase = true)
         }
+        title = slashDateRegex.replace(title, "")
         title = dateRegex.replace(title, "")
         title = timeRegex.replace(title, "")
         title = thaiTimeRegex.replace(title, "")
