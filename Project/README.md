@@ -4,6 +4,8 @@
 
 แอปนี้สร้างขึ้นเพื่อเน้นการเพิ่มประสิทธิภาพ (Productivity) และสร้างแรงจูงใจในการทำงานผ่านระบบคะแนน (Gamification)
 
+<img width="693" height="682" alt="Wireframe drawio" src="https://github.com/user-attachments/assets/c89e8120-4d6e-41e0-910c-dbd58cf4ab88" />
+
 ---
 
 ## 🛠 Tech Stack
