@@ -4,30 +4,15 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FolderOpen
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.filled.Replay
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,11 +20,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.tailytask.app.data.local.ProjectEntity
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -51,126 +35,123 @@ fun ProjectCard(
     completedSubtaskCount: Int,
     onClick: () -> Unit,
     onDelete: () -> Unit,
+    onToggleComplete: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val progress = if (subtaskCount > 0) completedSubtaskCount.toFloat() / subtaskCount else 0f
     val animatedProgress by animateFloatAsState(
-        targetValue = progress,
-        animationSpec = tween(600), label = "projectProgress"
+        targetValue = progress, animationSpec = tween(600), label = "progress"
     )
     val projectColor = try {
         Color(android.graphics.Color.parseColor(project.colorHex))
-    } catch (e: Exception) {
-        MaterialTheme.colorScheme.primary
-    }
+    } catch (e: Exception) { Color(0xFFF48FB1) }
     val dateFormat = SimpleDateFormat("dd MMM", Locale.getDefault())
-    val isOverdue = project.deadline < System.currentTimeMillis() && !project.isCompleted
-    val daysLeft = ((project.deadline - System.currentTimeMillis()) / (1000 * 60 * 60 * 24)).toInt()
+    val isCompleted = project.isCompleted
 
     Card(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (project.isCompleted)
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+            containerColor = if (isCompleted)
+                MaterialTheme.colorScheme.surface
             else MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        border = null
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp)
+                .then(
+                    if (isCompleted) Modifier.background(
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f)
+                    ) else Modifier
+                )
+                .padding(16.dp)
         ) {
+            // Top row: icon + title + actions
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Color indicator
+                // Color folder icon
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(projectColor.copy(alpha = 0.2f)),
+                        .size(36.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(projectColor.copy(alpha = if (isCompleted) 0.06f else 0.12f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        Icons.Filled.FolderOpen,
-                        contentDescription = null,
-                        tint = projectColor,
-                        modifier = Modifier.size(22.dp)
+                        if (isCompleted) Icons.Filled.CheckCircle else Icons.Filled.FolderOpen,
+                        null,
+                        tint = projectColor.copy(alpha = if (isCompleted) 0.4f else 1f),
+                        modifier = Modifier.size(20.dp)
                     )
                 }
 
                 Spacer(modifier = Modifier.width(12.dp))
 
+                // Title + date
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = project.title,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        color = MaterialTheme.colorScheme.onSurface.copy(
+                            alpha = if (isCompleted) 0.45f else 1f
+                        ),
+                        textDecoration = if (isCompleted) TextDecoration.LineThrough else null
                     )
                     Text(
                         text = "${dateFormat.format(Date(project.startDate))} → ${dateFormat.format(Date(project.deadline))}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
                     )
                 }
 
-                // Days left badge
-                if (!project.isCompleted) {
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(
-                                if (isOverdue) Color(0xFFE57373).copy(alpha = 0.15f)
-                                else if (daysLeft <= 3) Color(0xFFFFB74D).copy(alpha = 0.15f)
-                                else projectColor.copy(alpha = 0.15f)
-                            )
-                            .padding(horizontal = 10.dp, vertical = 4.dp)
-                    ) {
-                        Text(
-                            text = if (isOverdue) "เลยกำหนด!"
-                            else if (daysLeft == 0) "วันนี้!"
-                            else "อีก ${daysLeft} วัน",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = if (isOverdue) Color(0xFFE57373)
-                            else if (daysLeft <= 3) Color(0xFFFFB74D)
-                            else projectColor
+                // Toggle complete/uncomplete button
+                if (onToggleComplete != null) {
+                    IconButton(onClick = onToggleComplete, modifier = Modifier.size(32.dp)) {
+                        Icon(
+                            if (isCompleted) Icons.Filled.Replay else Icons.Filled.CheckCircle,
+                            if (isCompleted) "Restore" else "Complete",
+                            tint = if (isCompleted) MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+                                   else MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                            modifier = Modifier.size(18.dp)
                         )
                     }
                 }
 
-                IconButton(onClick = onDelete) {
+                // Delete button
+                IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
                     Icon(
-                        Icons.Filled.Delete,
-                        contentDescription = "Delete",
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-                        modifier = Modifier.size(18.dp)
+                        Icons.Filled.Delete, "Delete",
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f),
+                        modifier = Modifier.size(16.dp)
                     )
                 }
             }
 
+            // Description
             if (project.description.isNotBlank()) {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = project.description,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            // Progress bar
+            // Progress bar + count
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -179,18 +160,18 @@ fun ProjectCard(
                     progress = { animatedProgress },
                     modifier = Modifier
                         .weight(1f)
-                        .height(8.dp)
-                        .clip(RoundedCornerShape(4.dp)),
-                    color = projectColor,
-                    trackColor = projectColor.copy(alpha = 0.15f),
+                        .height(5.dp)
+                        .clip(RoundedCornerShape(3.dp)),
+                    color = projectColor.copy(alpha = if (isCompleted) 0.3f else 1f),
+                    trackColor = projectColor.copy(alpha = 0.08f),
                     strokeCap = StrokeCap.Round
                 )
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(10.dp))
                 Text(
-                    text = "$completedSubtaskCount/$subtaskCount",
+                    "$completedSubtaskCount/$subtaskCount",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color = projectColor
+                    color = projectColor.copy(alpha = if (isCompleted) 0.4f else 1f)
                 )
             }
         }

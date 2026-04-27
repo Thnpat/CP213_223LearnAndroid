@@ -1,78 +1,31 @@
 package com.tailytask.app.ui.navigation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Dashboard
-import androidx.compose.material.icons.filled.FolderCopy
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.ShoppingBag
-import androidx.compose.material.icons.filled.TaskAlt
-import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.Dashboard
-import androidx.compose.material.icons.outlined.FolderCopy
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.ShoppingBag
-import androidx.compose.material.icons.outlined.TaskAlt
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class Screen(
     val route: String,
-    val label: String,
-    val filledIcon: ImageVector,
-    val outlinedIcon: ImageVector
+    val label: String = "",
+    val filledIcon: ImageVector = Icons.Filled.Home,
+    val outlinedIcon: ImageVector = Icons.Outlined.Home
 ) {
-    data object Dashboard : Screen(
-        route = "dashboard",
-        label = "หน้าหลัก",
-        filledIcon = Icons.Filled.Dashboard,
-        outlinedIcon = Icons.Outlined.Dashboard
-    )
+    // Bottom nav: Home | Projects | (+AI FAB) | Shop | Profile
+    object Home : Screen("home", "Home", Icons.Filled.Home, Icons.Outlined.Home)
+    object Projects : Screen("projects", "Projects", Icons.Filled.Folder, Icons.Outlined.Folder)
+    object Shop : Screen("shop", "Shop", Icons.Filled.ShoppingBag, Icons.Outlined.ShoppingBag)
+    object Profile : Screen("profile", "Profile", Icons.Filled.Person, Icons.Outlined.Person)
 
-    data object Tasks : Screen(
-        route = "tasks",
-        label = "งาน",
-        filledIcon = Icons.Filled.TaskAlt,
-        outlinedIcon = Icons.Outlined.TaskAlt
-    )
-
-    data object Projects : Screen(
-        route = "projects",
-        label = "โปรเจค",
-        filledIcon = Icons.Filled.FolderCopy,
-        outlinedIcon = Icons.Outlined.FolderCopy
-    )
-
-    data object Calendar : Screen(
-        route = "calendar",
-        label = "ปฏิทิน",
-        filledIcon = Icons.Filled.CalendarMonth,
-        outlinedIcon = Icons.Outlined.CalendarMonth
-    )
-
-    data object Shop : Screen(
-        route = "shop",
-        label = "ร้านค้า",
-        filledIcon = Icons.Filled.ShoppingBag,
-        outlinedIcon = Icons.Outlined.ShoppingBag
-    )
-
-    data object Profile : Screen(
-        route = "profile",
-        label = "โปรไฟล์",
-        filledIcon = Icons.Filled.Person,
-        outlinedIcon = Icons.Outlined.Person
-    )
-
-    data object ProjectDetail : Screen(
-        route = "project_detail/{projectId}",
-        label = "รายละเอียดโปรเจค",
-        filledIcon = Icons.Filled.FolderCopy,
-        outlinedIcon = Icons.Outlined.FolderCopy
-    ) {
+    // Sub-screens (not in bottom nav)
+    object Calendar : Screen("calendar")
+    object ProjectDetail : Screen("project_detail/{projectId}") {
         fun createRoute(projectId: Long) = "project_detail/$projectId"
     }
+    object Analytics : Screen("analytics")
 
     companion object {
-        val bottomNavItems = listOf(Dashboard, Tasks, Projects, Calendar, Shop)
+        // Left: Home, Projects | (FAB) | Right: Shop, Profile
+        val bottomNavItems = listOf(Home, Projects, Shop, Profile)
     }
 }

@@ -56,21 +56,15 @@ class ProjectViewModel(application: Application) : AndroidViewModel(application)
 
     // ===== Project CRUD =====
     fun addProject(project: ProjectEntity) {
-        viewModelScope.launch {
-            repository.insertProject(project)
-        }
+        viewModelScope.launch { repository.insertProject(project) }
     }
 
     fun updateProject(project: ProjectEntity) {
-        viewModelScope.launch {
-            repository.updateProject(project)
-        }
+        viewModelScope.launch { repository.updateProject(project) }
     }
 
     fun deleteProject(project: ProjectEntity) {
-        viewModelScope.launch {
-            repository.deleteProject(project)
-        }
+        viewModelScope.launch { repository.deleteProject(project) }
     }
 
     fun completeProject(project: ProjectEntity) {
@@ -79,34 +73,31 @@ class ProjectViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    fun uncompleteProject(project: ProjectEntity) {
+        viewModelScope.launch {
+            repository.updateProject(project.copy(isCompleted = false))
+        }
+    }
+
     // ===== Load project detail =====
     fun loadProject(projectId: Long) {
         viewModelScope.launch {
-            val project = repository.getProjectById(projectId)
-            _selectedProject.value = project
+            _selectedProject.value = repository.getProjectById(projectId)
         }
         viewModelScope.launch {
-            repository.getSubtasksForProject(projectId).collect { list ->
-                _subtasks.value = list
-            }
+            repository.getSubtasksForProject(projectId).collect { _subtasks.value = it }
         }
         viewModelScope.launch {
-            repository.getSubtaskCount(projectId).collect { count ->
-                _subtaskCount.value = count
-            }
+            repository.getSubtaskCount(projectId).collect { _subtaskCount.value = it }
         }
         viewModelScope.launch {
-            repository.getCompletedSubtaskCount(projectId).collect { count ->
-                _completedSubtaskCount.value = count
-            }
+            repository.getCompletedSubtaskCount(projectId).collect { _completedSubtaskCount.value = it }
         }
     }
 
     // ===== Subtask CRUD =====
     fun addSubtask(subtask: SubtaskEntity) {
-        viewModelScope.launch {
-            repository.insertSubtask(subtask)
-        }
+        viewModelScope.launch { repository.insertSubtask(subtask) }
     }
 
     fun toggleSubtask(subtask: SubtaskEntity) {
@@ -122,9 +113,7 @@ class ProjectViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun deleteSubtask(subtask: SubtaskEntity) {
-        viewModelScope.launch {
-            repository.deleteSubtask(subtask)
-        }
+        viewModelScope.launch { repository.deleteSubtask(subtask) }
     }
 
     // ===== Calendar: get projects in range =====

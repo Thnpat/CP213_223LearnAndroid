@@ -1,38 +1,19 @@
 package com.tailytask.app.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.tailytask.app.ui.components.AddProjectSheet
 import com.tailytask.app.ui.components.ProjectCard
 import com.tailytask.app.viewmodel.ProjectViewModel
@@ -50,41 +31,35 @@ fun ProjectsScreen(
     val activeProjects = allProjects.filter { !it.isCompleted }
     val completedProjects = allProjects.filter { it.isCompleted }
 
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showAddSheet = true },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Icon(Icons.Filled.Add, contentDescription = "Add Project")
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { paddingValues ->
-        LazyColumn(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(top = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding())
+    ) {
+        // Header
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                top = paddingValues.calculateTopPadding() + 16.dp,
-                bottom = paddingValues.calculateBottomPadding() + 120.dp,
-                start = 20.dp,
-                end = 20.dp
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Projects",
+                style = MaterialTheme.typography.displayMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Spacer(modifier = Modifier.weight(1f))
+        }
+
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            contentPadding = PaddingValues(
+                start = 20.dp, end = 20.dp, bottom = 100.dp
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Projects",
-                    style = MaterialTheme.typography.displayMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-            }
-
             // Active projects
             if (activeProjects.isNotEmpty()) {
                 item {
@@ -96,21 +71,20 @@ fun ProjectsScreen(
                     )
                 }
                 items(activeProjects, key = { "active_${it.id}" }) { project ->
-                    val subtaskCountFlow = remember(project.id) {
+                    val sc by remember(project.id) {
                         projectViewModel.getSubtaskCountFlow(project.id)
-                    }
-                    val completedCountFlow = remember(project.id) {
+                    }.collectAsState(initial = 0)
+                    val cc by remember(project.id) {
                         projectViewModel.getCompletedSubtaskCountFlow(project.id)
-                    }
-                    val sc by subtaskCountFlow.collectAsState(initial = 0)
-                    val cc by completedCountFlow.collectAsState(initial = 0)
+                    }.collectAsState(initial = 0)
 
                     ProjectCard(
                         project = project,
                         subtaskCount = sc,
                         completedSubtaskCount = cc,
                         onClick = { onProjectClick(project.id) },
-                        onDelete = { projectViewModel.deleteProject(project) }
+                        onDelete = { projectViewModel.deleteProject(project) },
+                        onToggleComplete = { projectViewModel.completeProject(project) }
                     )
                 }
             }
@@ -123,7 +97,7 @@ fun ProjectsScreen(
                         text = "Completed (${completedProjects.size})",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
                     )
                 }
                 items(completedProjects, key = { "done_${it.id}" }) { project ->
@@ -139,7 +113,33 @@ fun ProjectsScreen(
                         subtaskCount = sc,
                         completedSubtaskCount = cc,
                         onClick = { onProjectClick(project.id) },
-                        onDelete = { projectViewModel.deleteProject(project) }
+                        onDelete = { projectViewModel.deleteProject(project) },
+                        onToggleComplete = { projectViewModel.uncompleteProject(project) }
+                    )
+                }
+            }
+
+            // + ADD PROJECT button
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = { showAddSheet = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    border = ButtonDefaults.outlinedButtonBorder(true).copy(
+                        brush = androidx.compose.ui.graphics.SolidColor(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                        )
+                    )
+                ) {
+                    Icon(Icons.Filled.Add, null, modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        "ADD PROJECT",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
@@ -150,32 +150,24 @@ fun ProjectsScreen(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 60.dp),
+                            .padding(vertical = 40.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Icon(
-                            imageVector = androidx.compose.material.icons.Icons.Filled.Folder,
-                            contentDescription = "Empty",
+                            Icons.Filled.Folder, null,
                             modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f)
+                            tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f)
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             text = "No projects yet",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
-                        )
-                        Text(
-                            text = "Tap + to create a new project",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.3f)
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
                         )
                     }
                 }
             }
-
-            item { Spacer(modifier = Modifier.height(80.dp)) }
         }
     }
 

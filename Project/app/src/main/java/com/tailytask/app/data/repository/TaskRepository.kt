@@ -27,6 +27,9 @@ class TaskRepository(private val taskDao: TaskDao) {
 
     fun getPendingTaskCount(): Flow<Int> = taskDao.getPendingTaskCount()
 
+    fun getOverdueTasks(): Flow<List<TaskEntity>> =
+        taskDao.getOverdueTasks(System.currentTimeMillis())
+
     suspend fun getTaskById(taskId: Long): TaskEntity? = taskDao.getTaskById(taskId)
 
     suspend fun insertTask(task: TaskEntity): Long = taskDao.insertTask(task)
@@ -45,4 +48,14 @@ class TaskRepository(private val taskDao: TaskDao) {
         val updatedTask = task.copy(isCompleted = false)
         taskDao.updateTask(updatedTask)
     }
+
+    // Analytics
+    suspend fun getCompletedCountInRange(startMs: Long, endMs: Long): Int =
+        taskDao.getCompletedCountInRange(startMs, endMs)
+
+    suspend fun getTotalCountInRange(startMs: Long, endMs: Long): Int =
+        taskDao.getTotalCountInRange(startMs, endMs)
+
+    // Export
+    suspend fun getAllTasksSync(): List<TaskEntity> = taskDao.getAllTasksSync()
 }

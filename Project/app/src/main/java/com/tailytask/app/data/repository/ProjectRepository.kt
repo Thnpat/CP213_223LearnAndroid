@@ -54,4 +54,8 @@ class ProjectRepository(private val projectDao: ProjectDao) {
         val updated = subtask.copy(isCompleted = false)
         projectDao.updateSubtask(updated)
     }
+
+    // Export
+    suspend fun getAllProjectsSync(): List<ProjectEntity> = projectDao.getAllProjectsSync()
+    suspend fun getAllSubtasksSync(): List<SubtaskEntity> = projectDao.getAllSubtasksSync()
 }

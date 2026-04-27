@@ -18,7 +18,7 @@ interface TaskDao {
     @Query("SELECT * FROM tasks ORDER BY isCompleted ASC, dueDate ASC, createdAt DESC")
     fun getAllTasks(): Flow<List<TaskEntity>>
 
-    @Query("SELECT * FROM tasks WHERE isCompleted = 0 ORDER BY dueDate ASC, createdAt DESC")
+    @Query("SELECT * FROM tasks WHERE isCompleted = 0 ORDER BY sortOrder ASC, dueDate ASC, createdAt DESC")
     fun getPendingTasks(): Flow<List<TaskEntity>>
 
     @Query("SELECT * FROM tasks WHERE isCompleted = 1 ORDER BY dueDate DESC")
@@ -53,6 +53,20 @@ interface TaskDao {
 
     @Query("SELECT COUNT(*) FROM tasks WHERE isCompleted = 0")
     fun getPendingTaskCount(): Flow<Int>
+
+    // Analytics queries
+    @Query("SELECT COUNT(*) FROM tasks WHERE isCompleted = 1 AND createdAt BETWEEN :startMs AND :endMs")
+    suspend fun getCompletedCountInRange(startMs: Long, endMs: Long): Int
+
+    @Query("SELECT COUNT(*) FROM tasks WHERE createdAt BETWEEN :startMs AND :endMs")
+    suspend fun getTotalCountInRange(startMs: Long, endMs: Long): Int
+
+    @Query("SELECT * FROM tasks WHERE isCompleted = 0 AND dueDate < :nowMs AND dueDate IS NOT NULL")
+    fun getOverdueTasks(nowMs: Long): Flow<List<TaskEntity>>
+
+    // Export: get all tasks synchronously
+    @Query("SELECT * FROM tasks")
+    suspend fun getAllTasksSync(): List<TaskEntity>
 }
 
 // ===== Project DAO =====
@@ -106,12 +120,19 @@ interface ProjectDao {
 
     @Delete
     suspend fun deleteSubtask(subtask: SubtaskEntity)
+
+    // Export
+    @Query("SELECT * FROM projects")
+    suspend fun getAllProjectsSync(): List<ProjectEntity>
+
+    @Query("SELECT * FROM subtasks")
+    suspend fun getAllSubtasksSync(): List<SubtaskEntity>
 }
 
 // ===== Database =====
 @Database(
     entities = [TaskEntity::class, ProjectEntity::class, SubtaskEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

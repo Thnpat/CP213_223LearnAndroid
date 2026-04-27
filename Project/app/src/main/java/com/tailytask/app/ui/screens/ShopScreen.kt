@@ -1,62 +1,28 @@
 package com.tailytask.app.ui.screens
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.tailytask.app.model.AppTheme
 import com.tailytask.app.model.ThemeStore
 import com.tailytask.app.ui.theme.PointsGold
@@ -74,7 +40,6 @@ fun ShopScreen(
 
     var showPurchaseDialog by remember { mutableStateOf<AppTheme?>(null) }
 
-    // Show snackbar for purchase result
     LaunchedEffect(purchaseMessage) {
         purchaseMessage?.let {
             snackbarHostState.showSnackbar(it)
@@ -86,66 +51,51 @@ fun ShopScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .verticalScroll(rememberScrollState())
-            .padding(
-                top = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding(),
-                bottom = 120.dp,
-                start = 20.dp,
-                end = 20.dp
-            )
+            .padding(top = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding())
     ) {
-        Spacer(modifier = Modifier.height(24.dp))
-
+        // Header
         Text(
             text = "Theme Shop",
             style = MaterialTheme.typography.displayMedium,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onBackground
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Points balance card
+        // Points display
         Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            )
         ) {
-            Box(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(
-                        Brush.horizontalGradient(
-                            listOf(
-                                PointsGold.copy(alpha = 0.3f),
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                            )
-                        ),
-                        RoundedCornerShape(24.dp)
-                    )
-                    .padding(24.dp)
+                    .padding(20.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        Icons.Filled.EmojiEvents, null,
-                        tint = PointsGold,
-                        modifier = Modifier.size(36.dp)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "YOUR POINTS",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column {
-                        Text(
-                            text = "Your Points",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Filled.EmojiEvents, null,
+                            tint = PointsGold,
+                            modifier = Modifier.size(32.dp)
                         )
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "$totalPoints pts",
-                            style = MaterialTheme.typography.headlineLarge,
+                            text = "$totalPoints",
+                            style = MaterialTheme.typography.displayMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFFB8860B)
                         )
@@ -154,65 +104,49 @@ fun ShopScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = "All Themes",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onBackground
-        )
+        // Theme grid (2 columns)
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 16.dp),
+            contentPadding = PaddingValues(bottom = 100.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(ThemeStore.themes) { theme ->
+                val isOwned = ownedThemes.contains(theme.id)
+                val isActive = currentThemeId == theme.id
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Theme grid
-        ThemeStore.themes.forEach { theme ->
-            val isOwned = ownedThemes.contains(theme.id)
-            val isActive = currentThemeId == theme.id
-            val canAfford = totalPoints >= theme.price
-
-            ThemeShopCard(
-                theme = theme,
-                isOwned = isOwned,
-                isActive = isActive,
-                canAfford = canAfford,
-                onPurchase = { showPurchaseDialog = theme },
-                onApply = { themeViewModel.setTheme(theme.id) }
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
+                ThemeGridCard(
+                    theme = theme,
+                    isOwned = isOwned,
+                    isActive = isActive,
+                    canAfford = totalPoints >= theme.price,
+                    onPurchase = { showPurchaseDialog = theme },
+                    onApply = { themeViewModel.setTheme(theme.id) }
+                )
+            }
         }
-
-        Spacer(modifier = Modifier.height(80.dp))
     }
 
-    // Purchase confirmation dialog
+    // Purchase dialog
     showPurchaseDialog?.let { theme ->
         AlertDialog(
             onDismissRequest = { showPurchaseDialog = null },
             title = {
-                Text("Purchase Theme?", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                Text("Purchase Theme?", fontWeight = FontWeight.Bold)
             },
             text = {
                 Column {
+                    Text("Buy ${theme.name}?")
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Do you want to purchase ${theme.name}?",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("ราคา: ", style = MaterialTheme.typography.bodyMedium)
-                        Text(
-                            text = "${theme.price} pts",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFB8860B)
-                        )
-                    }
-                    Text(
-                        text = "Balance: $totalPoints pts",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        "${theme.price} pts",
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFB8860B)
                     )
                 }
             },
@@ -224,10 +158,10 @@ fun ShopScreen(
                     },
                     enabled = totalPoints >= theme.price,
                     shape = RoundedCornerShape(12.dp)
-                ) { Text("ซื้อเลย!") }
+                ) { Text("Buy!") }
             },
             dismissButton = {
-                TextButton(onClick = { showPurchaseDialog = null }) { Text("ยกเลิก") }
+                TextButton(onClick = { showPurchaseDialog = null }) { Text("Cancel") }
             },
             shape = RoundedCornerShape(24.dp)
         )
@@ -235,7 +169,7 @@ fun ShopScreen(
 }
 
 @Composable
-fun ThemeShopCard(
+fun ThemeGridCard(
     theme: AppTheme,
     isOwned: Boolean,
     isActive: Boolean,
@@ -246,148 +180,84 @@ fun ThemeShopCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .aspectRatio(0.85f)
             .then(
-                if (isActive) Modifier.border(
-                    2.dp,
-                    MaterialTheme.colorScheme.primary,
-                    RoundedCornerShape(24.dp)
-                ) else Modifier
-            ),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                if (isActive) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(20.dp))
+                else Modifier
+            )
+            .clickable {
+                when {
+                    isActive -> { /* already active */ }
+                    isOwned -> onApply()
+                    else -> onPurchase()
+                }
+            },
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp)
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
+            // Color preview
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                // Color palette preview
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    listOf(
-                        theme.primary,
-                        theme.secondary,
-                        theme.tertiary,
-                        theme.accent,
-                        theme.background
-                    ).forEach { color ->
-                        Box(
-                            modifier = Modifier
-                                .size(28.dp)
-                                .clip(CircleShape)
-                                .background(color)
-                                .border(1.dp, Color.White.copy(alpha = 0.5f), CircleShape)
-                        )
-                    }
+                listOf(theme.primary, theme.secondary, theme.accent).forEach { color ->
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(CircleShape)
+                            .background(color)
+                    )
                 }
+            }
 
-                Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(10.dp))
 
-                // Status badge
-                if (isActive) {
+            Text(
+                text = theme.name,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center,
+                maxLines = 2
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            // Price / Status
+            when {
+                isActive -> {
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
                             .background(MaterialTheme.colorScheme.primary)
                             .padding(horizontal = 10.dp, vertical = 4.dp)
                     ) {
-                        Text(
-                            text = "✓ กำลังใช้",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Text("Active", style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
                     }
                 }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Theme name
-            Text(
-                text = theme.name,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            // Price or status
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (theme.price == 0) {
+                isOwned -> {
+                    Text("Owned", style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                }
+                theme.price == 0 -> {
+                    Text("Free", style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold, color = Color(0xFF66BB6A))
+                }
+                else -> {
                     Text(
-                        text = "Free!",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF66BB6A),
-                        fontWeight = FontWeight.Bold
+                        "${theme.price} pts",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = if (canAfford) Color(0xFFB8860B) else Color.Gray
                     )
-                } else {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Filled.EmojiEvents, null,
-                            tint = PointsGold,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "${theme.price} pts",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFB8860B)
-                        )
-                    }
-                }
-
-                // Action button
-                when {
-                    isActive -> {
-                        // Already active - no button needed
-                    }
-                    isOwned -> {
-                        Button(
-                            onClick = onApply,
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary
-                            )
-                        ) {
-                            Icon(Icons.Filled.Check, null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("ใช้งาน")
-                        }
-                    }
-                    else -> {
-                        Button(
-                            onClick = onPurchase,
-                            shape = RoundedCornerShape(12.dp),
-                            enabled = canAfford,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (canAfford) PointsGold else Color.Gray,
-                                contentColor = if (canAfford) Color(0xFF5D4037) else Color.White
-                            )
-                        ) {
-                            Icon(
-                                if (canAfford) Icons.Filled.ShoppingCart else Icons.Filled.Lock,
-                                null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(if (canAfford) "ซื้อ" else "แต้มไม่พอ")
-                        }
-                    }
                 }
             }
         }

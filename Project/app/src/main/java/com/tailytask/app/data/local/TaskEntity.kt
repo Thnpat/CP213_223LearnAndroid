@@ -16,5 +16,6 @@ data class TaskEntity(
     val endTime: String? = null,
     val isCompleted: Boolean = false,
     val createdAt: Long = System.currentTimeMillis(),
-    val points: Int = 20
+    val points: Int = 20,
+    val sortOrder: Int = 0
 )

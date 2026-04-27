@@ -1,352 +1,190 @@
 package com.tailytask.app.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.TaskAlt
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.tailytask.app.model.ThemeStore
-import com.tailytask.app.ui.theme.PointsGold
 import com.tailytask.app.viewmodel.TaskViewModel
 import com.tailytask.app.viewmodel.ThemeViewModel
 
 @Composable
 fun ProfileScreen(
     taskViewModel: TaskViewModel,
-    themeViewModel: ThemeViewModel
+    themeViewModel: ThemeViewModel,
+    onNavigateToAnalytics: () -> Unit
 ) {
     val userName by themeViewModel.userName.collectAsState()
     val totalPoints by themeViewModel.totalPoints.collectAsState()
-    val currentThemeId by themeViewModel.currentThemeId.collectAsState()
-    val totalCount by taskViewModel.totalCount.collectAsState()
     val completedCount by taskViewModel.completedCount.collectAsState()
+    val currentThemeId by themeViewModel.currentThemeId.collectAsState()
     val ownedThemes by themeViewModel.ownedThemes.collectAsState()
-
-    val currentTheme = ThemeStore.getThemeById(currentThemeId)
+    val weeklyAnalytics by taskViewModel.weeklyAnalytics.collectAsState()
 
     var showEditNameDialog by remember { mutableStateOf(false) }
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp)
+            .padding(top = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 100.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Profile header card
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        Brush.verticalGradient(
-                            listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.tertiary
-                            )
-                        ),
-                        RoundedCornerShape(28.dp)
-                    )
-                    .padding(32.dp)
+        // Avatar and Name
+        item {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Box(
+                    modifier = Modifier.size(90.dp).clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)),
+                    contentAlignment = Alignment.Center
                 ) {
-                    // Avatar
-                    Box(
-                        modifier = Modifier
-                            .size(80.dp)
-                            .clip(CircleShape)
-                            .background(Color.White.copy(alpha = 0.3f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Person,
-                            contentDescription = null,
-                            modifier = Modifier.size(48.dp),
-                            tint = Color.White
-                        )
-                    }
+                    Icon(Icons.Filled.Person, null, modifier = Modifier.size(44.dp),
+                        tint = MaterialTheme.colorScheme.primary)
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(userName, style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground)
+                Spacer(modifier = Modifier.height(4.dp))
+                TextButton(onClick = { showEditNameDialog = true }) {
+                    Text("Edit Name", style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+        // Stats cards row
+        item {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                StatMiniCard(Icons.Filled.EmojiEvents, "$totalPoints", "Total Points",
+                    MaterialTheme.colorScheme.primary, Modifier.weight(1f))
+                StatMiniCard(Icons.Filled.TaskAlt, "$completedCount", "Tasks Done",
+                    Color(0xFF66BB6A), Modifier.weight(1f))
+            }
+        }
 
-                    // Name + Edit
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = userName,
-                            style = MaterialTheme.typography.headlineLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        IconButton(
-                            onClick = { showEditNameDialog = true },
-                            modifier = Modifier.size(28.dp)
-                        ) {
-                            Icon(
-                                Icons.Filled.Edit, "Edit name",
-                                tint = Color.White.copy(alpha = 0.8f),
-                                modifier = Modifier.size(18.dp)
-                            )
+        // Statistics
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text("Statistics", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.weight(1f))
+                        TextButton(onClick = onNavigateToAnalytics) {
+                            Text("View All", style = MaterialTheme.typography.labelMedium)
                         }
                     }
-
                     Spacer(modifier = Modifier.height(8.dp))
-
-                    // Points
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(Color.White.copy(alpha = 0.2f))
-                            .padding(horizontal = 16.dp, vertical = 6.dp)
-                    ) {
-                        Icon(
-                            Icons.Filled.EmojiEvents, null,
-                            tint = PointsGold,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "$totalPoints แต้ม",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
+                    MiniBarChart(
+                        labels = weeklyAnalytics.dayLabels,
+                        values = weeklyAnalytics.completedCounts,
+                        maxValue = weeklyAnalytics.totalCounts.maxOrNull()?.coerceAtLeast(1) ?: 1
+                    )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Stats grid
-        Text(
-            text = "📊 สถิติ",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            ProfileStatCard(
-                modifier = Modifier.weight(1f),
-                icon = Icons.Filled.TaskAlt,
-                value = "$totalCount",
-                label = "งานทั้งหมด",
-                color = MaterialTheme.colorScheme.primary
-            )
-            ProfileStatCard(
-                modifier = Modifier.weight(1f),
-                icon = Icons.Filled.CheckCircle,
-                value = "$completedCount",
-                label = "ทำเสร็จ",
-                color = Color(0xFF66BB6A)
-            )
-            ProfileStatCard(
-                modifier = Modifier.weight(1f),
-                icon = Icons.Filled.Star,
-                value = "${ownedThemes.size}",
-                label = "ธีมที่มี",
-                color = PointsGold
-            )
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Current theme display
-        Text(
-            text = "🎨 ธีมปัจจุบัน",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp),
-                verticalAlignment = Alignment.CenterVertically
+        // Quick Theme Switch
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
-                // Theme color preview
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    listOf(
-                        currentTheme.primary,
-                        currentTheme.secondary,
-                        currentTheme.tertiary,
-                        currentTheme.accent
-                    ).forEach { color ->
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(CircleShape)
-                                .background(color)
-                        )
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Quick Theme Switch", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        ThemeStore.themes.filter { ownedThemes.contains(it.id) }.take(6).forEach { theme ->
+                            val isActive = theme.id == currentThemeId
+                            Box(
+                                modifier = Modifier.size(40.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(theme.primary)
+                                    .clickable { themeViewModel.setTheme(theme.id) },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (isActive) {
+                                    Icon(Icons.Filled.Check, null, tint = Color.White, modifier = Modifier.size(18.dp))
+                                }
+                            }
+                        }
                     }
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Column {
-                    Text(
-                        text = currentTheme.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "กำลังใช้งาน",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                    )
                 }
             }
         }
-
-        Spacer(modifier = Modifier.height(100.dp))
     }
 
-    // Edit Name Dialog
+    // Edit name dialog
     if (showEditNameDialog) {
         var newName by remember { mutableStateOf(userName) }
         AlertDialog(
             onDismissRequest = { showEditNameDialog = false },
-            title = { Text("✏\uFE0F แก้ไขชื่อ") },
+            title = { Text("Edit Name", fontWeight = FontWeight.Bold) },
             text = {
                 OutlinedTextField(
-                    value = newName,
-                    onValueChange = { newName = it },
-                    label = { Text("ชื่อของคุณ") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp)
+                    value = newName, onValueChange = { newName = it },
+                    label = { Text("Your Name") }, singleLine = true, shape = RoundedCornerShape(12.dp)
                 )
             },
             confirmButton = {
-                Button(
-                    onClick = {
-                        if (newName.isNotBlank()) {
-                            themeViewModel.setUserName(newName)
-                            showEditNameDialog = false
-                        }
-                    },
-                    shape = RoundedCornerShape(12.dp)
-                ) { Text("บันทึก") }
+                Button(onClick = {
+                    if (newName.isNotBlank()) { themeViewModel.setUserName(newName); showEditNameDialog = false }
+                }, shape = RoundedCornerShape(12.dp)) { Text("Save") }
             },
-            dismissButton = {
-                TextButton(onClick = { showEditNameDialog = false }) { Text("ยกเลิก") }
-            },
+            dismissButton = { TextButton(onClick = { showEditNameDialog = false }) { Text("Cancel") } },
             shape = RoundedCornerShape(24.dp)
         )
     }
 }
 
 @Composable
-fun ProfileStatCard(
-    modifier: Modifier = Modifier,
-    icon: ImageVector,
-    value: String,
-    label: String,
-    color: Color
-) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = color,
-                modifier = Modifier.size(24.dp)
-            )
+fun StatMiniCard(icon: ImageVector, value: String, label: String, iconTint: Color, modifier: Modifier = Modifier) {
+    Card(modifier = modifier, shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+        Column(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(icon, null, tint = iconTint, modifier = Modifier.size(26.dp))
             Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = value,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = color
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-            )
+            Text(value, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface)
+            Text(label, style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+        }
+    }
+}
+
+@Composable
+fun MiniBarChart(labels: List<String>, values: List<Int>, maxValue: Int) {
+    if (labels.isEmpty()) return
+    Row(modifier = Modifier.fillMaxWidth().height(80.dp), horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.Bottom) {
+        labels.zip(values).forEach { (label, value) ->
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.weight(1f)) {
+                val barHeight = if (maxValue > 0) (value.toFloat() / maxValue * 50).coerceAtLeast(3f) else 3f
+                Box(modifier = Modifier.width(16.dp).height(barHeight.dp)
+                    .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
+                    .background(MaterialTheme.colorScheme.primary))
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(label, style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+            }
         }
     }
 }
